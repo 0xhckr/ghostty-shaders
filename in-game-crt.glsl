@@ -2,15 +2,14 @@
 // Author: sarphiv
 // License: CC BY-NC-SA 4.0
 // Description:
-//   Shader for ghostty that is focussed on being usable while looking like a stylized CRT terminal in a modern video game.
-//   I know a tiny bit about shaders, and nothing about GLSL,
-//   so this is a Frakenstein's monster combination of other shaders together with a lot of surgery.
-//   On the bright side, i've cleaned up the body parts and surgery a lot.
+//   Shader for Ghostty with a focus on being usable while looking like a stylized CRT terminal from a modern video game.
 
 // Based on:
 //   1. https://gist.github.com/mitchellh/39d62186910dcc27cad097fed16eb882 (forces the choice of license)
 //   2. https://gist.github.com/qwerasd205/c3da6c610c8ffe17d6d2d3cc7068f17f
 //   3. https://gist.github.com/seanwcom/0fbe6b270aaa5f28823e053d3dbb14ca
+//   4. https://www.shadertoy.com/view/ltB3zD
+
 
 
 // Settings:
@@ -20,14 +19,14 @@
 
 // How far apart the different colors are from each other
 // x \in R
-#define COLOR_FRINGING_SPREAD 1.0
+#define COLOR_FRINGING_SPREAD 0.1
 
 // How much the ghost images are spread out
 // x \in R : x >= 0
 #define GHOSTING_SPREAD 0.75
 // How visible ghost images are
 // x \in R : x >= 0
-#define GHOSTING_STRENGTH 1.0
+#define GHOSTING_STRENGTH 0.1
 
 // How much of the non-linearly darkened colors are mixed in
 // [0, 1]
@@ -35,10 +34,10 @@
 
 // How far in the vignette spreads
 // x \in R : x >= 0
-#define VIGNETTE_SPREAD 0.3
+#define VIGNETTE_SPREAD 0.4
 // How bright the vignette is
 // x \in R : x >= 0
-#define VIGNETTE_BRIGHTNESS 6.4
+#define VIGNETTE_BRIGHTNESS 20.0
 
 // Tint all colors
 // [0, 1]^3
@@ -47,7 +46,7 @@
 // How visible the scan line effect is
 // NOTE: Technically these are not scan lines, but rather the lack of them
 // [0, 1]
-#define SCAN_LINES_STRENGTH 0.15
+#define SCAN_LINES_STRENGTH 0.20
 // How bright the spaces between the lines are
 // [0, 1]
 #define SCAN_LINES_VARIANCE 0.35
@@ -57,36 +56,35 @@
 
 // How visible the aperture grille is
 // x \in R : x >= 0
-#define APERTURE_GRILLE_STRENGTH 0.2
+#define APERTURE_GRILLE_STRENGTH 0.3
 // Pixels per aperture grille
 // x \in R : x > 0
 #define APERTURE_GRILLE_PERIOD 2.0
 
 // How much the screen flickers
 // x \in R : x >= 0
-#define FLICKER_STRENGTH 0.05
+#define FLICKER_STRENGTH 0.04
 // How fast the screen flickers
 // x \in R : x > 0
 #define FLICKER_FREQUENCY 15.0
 
 // How much noise is added to filled areas
 // [0, 1]
-#define NOISE_CONTENT_STRENGTH 0.15
+#define NOISE_CONTENT_STRENGTH 0.25
 // How much noise is added everywhere
 // [0, 1]
-#define NOISE_UNIFORM_STRENGTH 0.03
+#define NOISE_UNIFORM_STRENGTH 0.25
 
 // How big the bloom is
 // x \in R : x >= 0
 #define BLOOM_SPREAD 8.0
 // How visible the bloom is
 // [0, 1]
-#define BLOOM_STRENGTH 0.04
+#define BLOOM_STRENGTH 0.004
 
-// How fast colors fade in and out
+// Backgrond opacity
 // [0, 1]
-#define FADE_FACTOR 0.55
-
+#define BACKGROUND_OPACITY 0.8
 
 
 // Disabled values for when the settings are not defined
@@ -153,19 +151,20 @@
 #define BLOOM_STRENGTH 0.0
 #endif
 
-#ifndef FADE_FACTOR
-#define FADE_FACTOR 1.00
+#ifndef BACKGROUND_OPACITY
+#define BACKGROUND_OPACITY 1.0
 #endif
 
 
 
-// Constants
+// Constants:
 #define PI 3.1415926535897932384626433832795
+#define PHI 1.61803398874989484820459
 
 #ifdef BLOOM_SPREAD
 // Golden spiral samples used for bloom.
 //   [x, y, weight] weight is inverse of distance.
-const vec3[24] bloom_samples = {
+const vec3[24] bloomSamples = {
     vec3( 0.1693761725038636,  0.9855514761735895,  1),
     vec3(-1.333070830962943,   0.4721463328627773,  0.7071067811865475),
     vec3(-0.8464394909806497, -1.51113870578065,    0.5773502691896258),
@@ -194,6 +193,12 @@ const vec3[24] bloom_samples = {
 #endif
 
 
+
+// Functions:
+float gold_v2_noise(in vec2 xy, in float seed)
+{
+    return fract(sin(distance(xy*PHI, xy)*seed)*xy.x*xy.y);
+}
 
 
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
@@ -226,7 +231,8 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 
 
     // Vignette effect
-    fragColor.rgb *= VIGNETTE_BRIGHTNESS * pow(uv.x * uv.y * (1.0-uv.x) * (1.0-uv.y), VIGNETTE_SPREAD);
+    // NOTE: Clamp necessary because of curve effect
+    fragColor.rgb *= VIGNETTE_BRIGHTNESS * pow(clamp(uv.x * uv.y * (1.0-uv.x) * (1.0-uv.y), 0.0, 1.0), VIGNETTE_SPREAD);
 
 
     // Tint all colors
@@ -245,19 +251,19 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 
 
     // Add aperture grille
-    int aperture_grille_step = int(8 * mod(fragCoord.x, APERTURE_GRILLE_PERIOD) / APERTURE_GRILLE_PERIOD);
-    float aperture_grille_mask;
+    int apertureGrilleStep = int(8 * mod(fragCoord.x, APERTURE_GRILLE_PERIOD) / APERTURE_GRILLE_PERIOD);
+    float apertureGrilleMask;
 
-    if (aperture_grille_step < 3)
-        aperture_grille_mask = 0.0;
-    else if (aperture_grille_step < 4)
-        aperture_grille_mask = mod(8*fragCoord.x, APERTURE_GRILLE_PERIOD) / APERTURE_GRILLE_PERIOD;
-    else if (aperture_grille_step < 7)
-        aperture_grille_mask = 1.0;
-    else if (aperture_grille_step < 8)
-        aperture_grille_mask = mod(-8*fragCoord.x, APERTURE_GRILLE_PERIOD) / APERTURE_GRILLE_PERIOD;
+    if (apertureGrilleStep < 3)
+        apertureGrilleMask = 0.0;
+    else if (apertureGrilleStep < 4)
+        apertureGrilleMask = mod(8*fragCoord.x, APERTURE_GRILLE_PERIOD) / APERTURE_GRILLE_PERIOD;
+    else if (apertureGrilleStep < 7)
+        apertureGrilleMask = 1.0;
+    else if (apertureGrilleStep < 8)
+        apertureGrilleMask = mod(-8*fragCoord.x, APERTURE_GRILLE_PERIOD) / APERTURE_GRILLE_PERIOD;
 
-    fragColor.rgb *= 1.0 - APERTURE_GRILLE_STRENGTH*aperture_grille_mask;
+    fragColor.rgb *= 1.0 - APERTURE_GRILLE_STRENGTH*apertureGrilleMask;
 
 
     // Add flicker
@@ -266,20 +272,19 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
 
     // Add noise
     // NOTE: Hard-coded noise distributions
-    float noiseContent = smoothstep(0.4, 0.6, fract(sin(uv.x * uv.y * (1.0-uv.x) * (1.0-uv.y) * iTime * 4096.0) * 65536.0));
-    float noiseUniform = smoothstep(0.4, 0.6, fract(sin(uv.x * uv.y * (1.0-uv.x) * (1.0-uv.y) * iTime * 8192.0) * 65536.0));
-    fragColor.rgb *= clamp(noiseContent + 1.0 - NOISE_CONTENT_STRENGTH, 0.0, 1.0);
-    fragColor.rgb = clamp(fragColor.rgb + noiseUniform * NOISE_UNIFORM_STRENGTH, 0.0, 1.0);
+    float noise = smoothstep(0.4, 0.6, gold_v2_noise(fragCoord.xy, fract(iTime*0.001)));
+    fragColor.rgb *= clamp(noise + 1.0 - NOISE_CONTENT_STRENGTH, 0.0, 1.0);
+    fragColor.rgb = clamp(fragColor.rgb + noise * NOISE_UNIFORM_STRENGTH / 100, 0.0, 1.0);
 
 
     // NOTE: At this point, RGB values are again within [0, 1]
 
 
     // Remove output outside of screen bounds
-    if (uv.x < 0.0 || uv.x > 1.0)
-        fragColor.rgb *= 0.0;
-    if (uv.y < 0.0 || uv.y > 1.0)
-        fragColor.rgb *= 0.0;
+    // if (uv.x < 0.0 || uv.x > 1.0)
+    //     fragColor.rgb *= 0.0;
+    // if (uv.y < 0.0 || uv.y > 1.0)
+    //     fragColor.rgb *= 0.0;
 
 
 #ifdef BLOOM_SPREAD
@@ -287,18 +292,17 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 step = BLOOM_SPREAD * vec2(1.414) / iResolution.xy;
 
     for (int i = 0; i < 24; i++) {
-        vec3 bloom_sample = bloom_samples[i];
-        vec4 neighbor = texture(iChannel0, uv + bloom_sample.xy * step);
+        vec3 bloomSample = bloomSamples[i];
+        vec4 neighbor = texture(iChannel0, uv + bloomSample.xy * step);
         float luminance = 0.299 * neighbor.r + 0.587 * neighbor.g + 0.114 * neighbor.b;
 
-        fragColor += luminance * bloom_sample.z * neighbor * BLOOM_STRENGTH;
+        fragColor += luminance * bloomSample.z * neighbor * BLOOM_STRENGTH;
     }
 
     fragColor = clamp(fragColor, 0.0, 1.0);
 #endif
 
 
-    // Add fade effect to smoothen out color transitions
-    // NOTE: May need to be iTime/iTimeDelta dependent
-    fragColor = vec4(FADE_FACTOR*fragColor.rgb, FADE_FACTOR);
+    // Set background opacity
+    fragColor = vec4(fragColor.rgb*fragColor.a, BACKGROUND_OPACITY);
 }
