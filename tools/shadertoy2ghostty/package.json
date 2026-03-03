@@ -1,0 +1,14 @@
+{
+  "name": "shadertoy2ghostty",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "convert": "tsx src/index.ts"
+  },
+  "devDependencies": {
+    "typescript": "^5.4",
+    "tsx": "^4.7",
+    "@types/node": "^20"
+  }
+}
