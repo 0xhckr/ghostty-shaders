@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import type { BlendMode, ConversionOptions } from './types.js';
+import type { BlendMode, ConversionOptions, ShadertoyApiResponse } from './types.js';
 import { CompatibilityTier } from './types.js';
 import { resolveApiKey, parseShaderInput, fetchShader } from './api.js';
 import { analyzeShader, convertShader } from './transform.js';
@@ -10,9 +10,16 @@ Usage: npx tsx tools/shadertoy2ghostty/src/index.ts [OPTIONS] <SHADER_ID_OR_URL>
 
 Convert a Shadertoy shader to Ghostty-compatible GLSL.
 
+Input (one of):
+  <SHADER_ID_OR_URL>       Fetch from Shadertoy API (requires API key)
+  -i, --input <FILE>       Read shader GLSL from a local file
+  --stdin                  Read shader GLSL from stdin (paste mode)
+
 Options:
   -o, --output <FILE>      Output path (default: <shader-name>.glsl in repo root)
   -k, --api-key <KEY>      API key (or SHADERTOY_API_KEY env var)
+  --name <NAME>            Shader name (for local/stdin input, default: filename or "untitled")
+  --author <AUTHOR>        Shader author (for local/stdin input, default: "unknown")
   --blend <MODE>           overlay|replace|additive|multiply (default: overlay)
   --no-blend               Same as --blend replace
   --flip-y                 Insert Y-axis flip
@@ -25,6 +32,10 @@ Options:
 interface ParsedArgs {
   output?: string;
   apiKey?: string;
+  inputFile?: string;
+  useStdin: boolean;
+  shaderName?: string;
+  shaderAuthor?: string;
   blendMode: BlendMode;
   flipY: boolean;
   analyzeOnly: boolean;
@@ -36,6 +47,7 @@ interface ParsedArgs {
 function parseArgs(argv: string[]): ParsedArgs {
   const args = argv.slice(2); // skip node and script path
   const result: ParsedArgs = {
+    useStdin: false,
     blendMode: 'overlay',
     flipY: false,
     analyzeOnly: false,
@@ -83,6 +95,35 @@ function parseArgs(argv: string[]): ParsedArgs {
 
       case '--no-blend':
         result.blendMode = 'replace';
+        break;
+
+      case '-i':
+      case '--input':
+        result.inputFile = args[++i];
+        if (!result.inputFile) {
+          console.error('Error: --input requires a file path argument.');
+          process.exit(1);
+        }
+        break;
+
+      case '--stdin':
+        result.useStdin = true;
+        break;
+
+      case '--name':
+        result.shaderName = args[++i];
+        if (!result.shaderName) {
+          console.error('Error: --name requires a value.');
+          process.exit(1);
+        }
+        break;
+
+      case '--author':
+        result.shaderAuthor = args[++i];
+        if (!result.shaderAuthor) {
+          console.error('Error: --author requires a value.');
+          process.exit(1);
+        }
         break;
 
       case '--flip-y':
@@ -138,44 +179,111 @@ function formatDiagnostics(diagnostics: { severity: string; category: string; me
     .join('\n');
 }
 
+function readStdin(): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    process.stdin.on('data', (chunk) => chunks.push(chunk));
+    process.stdin.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
+    process.stdin.on('error', reject);
+  });
+}
+
+function wrapRawGlsl(code: string, name: string, author: string): ShadertoyApiResponse {
+  return {
+    Shader: {
+      ver: '0.1',
+      info: {
+        id: 'local',
+        date: '',
+        viewed: 0,
+        name,
+        username: author,
+        description: '',
+        likes: 0,
+        published: 0,
+        flags: 0,
+        usePreview: 0,
+        tags: [],
+        hasliked: 0,
+      },
+      renderpass: [
+        {
+          inputs: [],
+          outputs: [{ id: 0, channel: 0 }],
+          code,
+          name: 'Image',
+          description: '',
+          type: 'image',
+        },
+      ],
+    },
+  };
+}
+
 async function main() {
   const parsed = parseArgs(process.argv);
+  const isLocalInput = parsed.inputFile || parsed.useStdin;
 
-  if (!parsed.shaderInput) {
-    console.error('Error: No shader ID or URL provided.\n');
+  if (!parsed.shaderInput && !isLocalInput) {
+    console.error('Error: No shader ID, URL, or input source provided.\n');
     console.error(HELP_TEXT);
     process.exit(1);
   }
 
-  // Resolve API key
-  let apiKey: string;
-  try {
-    apiKey = resolveApiKey(parsed.apiKey);
-  } catch (err) {
-    console.error((err as Error).message);
-    process.exit(1);
-  }
+  let shaderData: ShadertoyApiResponse;
 
-  // Parse shader input
-  let shaderId: string;
-  try {
-    shaderId = parseShaderInput(parsed.shaderInput);
-  } catch (err) {
-    console.error((err as Error).message);
-    process.exit(1);
-  }
+  if (isLocalInput) {
+    // Local input mode: read from file or stdin
+    let rawGlsl: string;
+    if (parsed.useStdin) {
+      if (parsed.verbose) console.error('Reading shader from stdin...');
+      rawGlsl = await readStdin();
+    } else {
+      if (parsed.verbose) console.error(`Reading shader from ${parsed.inputFile}...`);
+      if (!fs.existsSync(parsed.inputFile!)) {
+        console.error(`Error: File not found: ${parsed.inputFile}`);
+        process.exit(1);
+      }
+      rawGlsl = fs.readFileSync(parsed.inputFile!, 'utf-8');
+    }
 
-  if (parsed.verbose) {
-    console.error(`Fetching shader "${shaderId}" from Shadertoy API...`);
-  }
+    if (!rawGlsl.trim()) {
+      console.error('Error: Empty shader input.');
+      process.exit(1);
+    }
 
-  // Fetch shader data
-  let shaderData;
-  try {
-    shaderData = await fetchShader(shaderId, apiKey);
-  } catch (err) {
-    console.error((err as Error).message);
-    process.exit(1);
+    const name = parsed.shaderName
+      || (parsed.inputFile ? path.basename(parsed.inputFile, path.extname(parsed.inputFile)) : 'untitled');
+    const author = parsed.shaderAuthor || 'unknown';
+    shaderData = wrapRawGlsl(rawGlsl, name, author);
+  } else {
+    // API mode: fetch from Shadertoy
+    let apiKey: string;
+    try {
+      apiKey = resolveApiKey(parsed.apiKey);
+    } catch (err) {
+      console.error((err as Error).message);
+      process.exit(1);
+    }
+
+    let shaderId: string;
+    try {
+      shaderId = parseShaderInput(parsed.shaderInput!);
+    } catch (err) {
+      console.error((err as Error).message);
+      process.exit(1);
+    }
+
+    if (parsed.verbose) {
+      console.error(`Fetching shader "${shaderId}" from Shadertoy API...`);
+    }
+
+    try {
+      shaderData = await fetchShader(shaderId, apiKey);
+    } catch (err) {
+      console.error((err as Error).message);
+      process.exit(1);
+    }
   }
 
   // Analyze-only mode
@@ -216,9 +324,9 @@ async function main() {
   }
 
   // Determine output path
-  const toolDir = path.dirname(path.dirname(__filename));
+  const toolDir = path.dirname(path.dirname(new URL(import.meta.url).pathname));
   const repoRoot = path.resolve(toolDir, '../..');
-  const slug = slugify(result.shaderName || shaderId);
+  const slug = slugify(result.shaderName || 'shader');
   const outputPath = parsed.output || path.join(repoRoot, `${slug}.glsl`);
 
   // Write output
