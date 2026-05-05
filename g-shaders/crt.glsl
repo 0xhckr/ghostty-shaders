@@ -306,5 +306,5 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     );
 
   // Linear to SRGB for output.
-  fragColor = vec4(ToSrgb(fragColor.rgb), 1.0);
+  fragColor.rgb = ToSrgb(fragColor.rgb);
 }

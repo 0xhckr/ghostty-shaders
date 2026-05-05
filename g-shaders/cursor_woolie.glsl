@@ -1,0 +1,4 @@
+const vec4 TRAIL_COLOR = vec4(0.0, 1.0, 0.0, 1.0);
+const vec4 CURRENT_CURSOR_COLOR = TRAIL_COLOR;
+const vec4 PREVIOUS_CURSOR_COLOR = TRAIL_COLOR;
+const vec4 TRAIL_COLOR_ACCENT = vec4(0.5, 0.0, 0.5, 1.0);

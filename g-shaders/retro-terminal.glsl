@@ -1,6 +1,7 @@
-// Original shader collected from: https://www.shadertoy.com/view/WsVSzV
-// Licensed under Shadertoy's default since the original creator didn't provide any license. (CC BY NC SA 3.0)
-// Slight modifications were made to give a green-ish effect.
+//\\ Original shader collected from: https://www.shadertoy.com/view/WsVSzV //\\
+//\\ Licensed under Shadertoy's default license. (CC BY NC SA 3.0) //\\
+//\\ repaired for use by GrandBIRDLizard 2026 //\\
+//\\ changed made are Documented in code //\\
 
 float warp = 0.25; // simulate curvature of CRT monitor
 float scan = 0.50; // simulate darkness between scanlines
