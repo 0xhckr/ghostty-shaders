@@ -46,6 +46,9 @@ To maintain a steady 120 FPS on high-refresh displays:
 * Use `custom-shader-animation = true` to pause rendering when the window is hidden.
 * Keep the math inside `mainImage` as lean as possible—avoid complex loops
 
+##progress 
+anything inside g-shaders is not currently optimized will add IM at end of file name to indicate changes repo is a work in progress I've been tooling with in my spare time will tag a release when finished and possibly pre-release tags when I feel I've made significant progress and I've come to a final direction for project  
+
 ---
 # site not implemented will be available when project ships Pictures will be desplayed in README.md Gif's will be on the website
 ## 📖 The Interactive site:
