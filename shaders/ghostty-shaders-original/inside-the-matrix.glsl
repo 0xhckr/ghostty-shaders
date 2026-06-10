@@ -23,9 +23,7 @@ const int BLOCK_GAP = 2;    //in cells
 const float WALK_SPEED = 0.5 * XYCELL_SIZE;
 const float BLOCKS_BEFORE_TURN = 3.;
 
-
 const float PI = 3.14159265359;
-
 
 //        ----  random  ----
 
@@ -40,7 +38,7 @@ float hash(vec2 v) {
 vec2 hash2(vec2 v)
 {
     v = vec2(v * mat2(127.1, 311.7,  269.5, 183.3));
-	return fract(sin(v)*43758.5453123);
+    return fract(sin(v)*43758.5453123);
 }
 
 vec4 hash4(vec2 v)
@@ -61,15 +59,14 @@ vec4 hash4(vec3 v)
     return fract(sin(p)*43758.5453123);
 }
 
-
 //        ----  symbols  ----
 //  Slightly modified version of "runes" by FabriceNeyret2 -  https://www.shadertoy.com/view/4ltyDM
 //  Which is based on "runes" by otaviogood -  https://shadertoy.com/view/MsXSRn
 
 float rune_line(vec2 p, vec2 a, vec2 b) {   // from https://www.shadertoy.com/view/4dcfW8
     p -= a, b -= a;
-	float h = clamp(dot(p, b) / dot(b, b), 0., 1.);   // proj coord on line
-	return length(p - b * h);                         // dist to segment
+    float h = clamp(dot(p, b) / dot(b, b), 0., 1.);   // proj coord on line
+    return length(p - b * h);                         // dist to segment
 }
 
 float rune(vec2 U, vec2 seed, float highlight)
@@ -77,20 +74,20 @@ float rune(vec2 U, vec2 seed, float highlight)
 	float d = 1e5;
 	for (int i = 0; i < 4; i++)	// number of strokes
 	{
-        vec4 pos = hash4(seed);
-		seed += 1.;
+            vec4 pos = hash4(seed);
+            seed += 1.;
 
-		// each rune touches the edge of its box on all 4 sides
-		if (i == 0) pos.y = .0;
-		if (i == 1) pos.x = .999;
-		if (i == 2) pos.x = .0;
-		if (i == 3) pos.y = .999;
-		// snap the random line endpoints to a grid 2x3
-		vec4 snaps = vec4(2, 3, 2, 3);
-		pos = ( floor(pos * snaps) + .5) / snaps;
+            // each rune touches the edge of its box on all 4 sides
+            if (i == 0) pos.y = .0;
+            if (i == 1) pos.x = .999;
+            if (i == 2) pos.x = .0;
+            if (i == 3) pos.y = .999;
+            // snap the random line endpoints to a grid 2x3
+            vec4 snaps = vec4(2, 3, 2, 3);
+            pos = ( floor(pos * snaps) + .5) / snaps;
 
-		if (pos.xy != pos.zw)  //filter out single points (when start and end are the same)
-		    d = min(d, rune_line(U, pos.xy, pos.zw + .001) ); // closest line
+            if (pos.xy != pos.zw)  //filter out single points (when start and end are the same)
+                d = min(d, rune_line(U, pos.xy, pos.zw + .001) ); // closest line
 	}
 	return smoothstep(0.1, 0., d) + highlight*smoothstep(0.4, 0., d);
 }
@@ -99,7 +96,6 @@ float random_char(vec2 outer, vec2 inner, float highlight) {
     vec2 seed = vec2(dot(outer, vec2(269.5, 183.3)), dot(outer, vec2(113.5, 271.9)));
     return rune(inner, seed, highlight);
 }
-
 
 //        ----  digital rain  ----
 
@@ -182,9 +178,9 @@ vec3 rain(vec3 ro3, vec3 rd3, float time) {
                         float q = fract(v * chars_count);
                         vec2 char_hash = hash2(vec2(c+char_z_shift, cell_hash2.x));
                         if (char_hash.x >= 0.1 || c == 0.) {  //10% of missed symbols
-                            float time_factor = floor(c == 0. ? time*5.0 :  //first symbol is changed fast
-                                    time*(1.0*cell_hash2.z +   //strips are changed sometime with different speed
-                                            cell_hash2.w*cell_hash2.w*4.*pow(char_hash.y, 4.)));  //some symbols in some strips are changed relatively often
+                            float time_factor = floor(c == 0. ? time :  //first symbol is changed fast
+                                                      time*(1.0*cell_hash2.z +   //strips are changed sometime with different speed
+                                                            cell_hash2.w*cell_hash2.w*4.*pow(char_hash.y, 4.)));  //some symbols in some strips are changed relatively often
                             float a = random_char(vec2(char_hash.x, time_factor), vec2(u,q), max(1., 3. - c/2.)*0.2);  //alpha
                             a *= clamp((chars_count - 0.5 - c) / 2., 0., 1.);  //tail fade
                             if (a > 0.) {
@@ -193,7 +189,8 @@ vec3 rain(vec3 ro3, vec3 rd3, float time) {
                                 float a1 = result.a;
                                 result.a = a1 + (1. - a1) * a;
                                 result.xyz = (result.xyz * a1 + col * (1. - a1) * a) / result.a;
-                                if (result.a > 0.98)  return result.xyz;
+                                if (result.a > 0.98)
+                                    return result.xyz;
                             }
                         }
                     }
@@ -208,12 +205,11 @@ vec3 rain(vec3 ro3, vec3 rd3, float time) {
     return result.xyz * result.a;
 }
 
-
 //        ----  main, camera  ----
 
 vec2 rotate(vec2 v, float a) {
     float s = sin(a);
-	float c = cos(a);
+    float c = cos(a);
     mat2 m = mat2(c, -s, s, c);
     return m * v;
 }
@@ -250,7 +246,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 
     vec2 uv = fragCoord.xy / iResolution.xy;
 
-    float time = iTime * SPEED;
+    float time = mod(iTime, 300) * SPEED; //reset time every 5 minutes, as large values lead to the same (and eventually no) rune(s)
 
     const float turn_rad = 0.25 / BLOCKS_BEFORE_TURN;   //0 .. 0.5
     const float turn_abs_time = (PI/2.*turn_rad) * 1.5;  //multiplier different than 1 means a slow down on turns
@@ -393,17 +389,17 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 
     ro.xy += level1_size * p;
 
-    ro += rd * 0.2;
     rd = normalize(rd);
+    ro += rd * 0.2;
 
     // vec3 col = rain(ro, rd, time);
     vec3 col = rain(ro, rd, time) * 0.25;
 
-  	// Sample the terminal screen texture including alpha channel
-  	vec4 terminalColor = texture(iChannel0, uv);
-  
-  	// Combine the matrix effect with the terminal color
-  	// vec3 blendedColor = terminalColor.rgb + col;
+    // Sample the terminal screen texture including alpha channel
+    vec4 terminalColor = texture(iChannel0, uv);
+
+    // Combine the matrix effect with the terminal color
+    // vec3 blendedColor = terminalColor.rgb + col;
 
     // Make a mask that is 1.0 where the terminal content is not black
     float mask = 1.2 - step(0.5, dot(terminalColor.rgb, vec3(1.0)));
