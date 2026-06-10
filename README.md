@@ -1,9 +1,61 @@
 # Ghostty Shaders
 
-A collection of GLSL fragment shaders optimized for [Ghostty](https://ghostty.org/) terminal v1.3.0+. 
 
-These shaders have been rewritten to enforce strict GLSL type safety, resolve `iChannel0` initialization races, and play nicely with strict Mesa drivers without tanking your framerate.
+[ LOGO HERE ]
 
+---
+
+### A collection of GLSL fragment shaders optimized for [Ghostty](https://ghostty.org/) terminal v1.3.0+.
+
+These shaders have been written to enforce GLSL type safety, resolve `iChannel0` initialization races, and play nicely with strict Mesa drivers and Ghostty engine changes without tanking your framerate.
+One folder contains the works this project was [forked](https://github.com/0xhckr/ghostty-shaders) from. I just want a place to curate shaders better, and a place for new and consistent contributors with well-performing shaders to have their own "collection," if you will, represented in the form of a directory in this repo. 
+
+A unique collection curated by individuals with talent to show their stuff to the community. Nothing Ghostty ricing is off-limits. There will be more structure to follow along with as I develop this further, so there will be no confusion about what to do if you wish to make a contribution.
+>For the time being keep all *questions* or *contribution ideas* to *issues* untill the project matures.  
+
+Rules off the bat: 
+No AI. 
+Contributions made with LLMs, or with LLMs listed as contributors, will be rejected.
+
+>The original maintainers do not share this policy, so you may find AI contributions in /ghostty-shaders-original.
+
+For now, enjoy what's displayed here!!!
+And thank you for checking out the repo!
+While it's still a work in progress, I hope you enjoy and look forward to watching the project grow.
+
+Below are **Installation** instructions.(will always work on the main branch, even as the project gets more complex.)
+
+---
+. Tree view
+
+```
+~/.config/
+│
+└── ghostty/
+    │
+    ├── config
+    │
+    └── GSIM/
+        │
+        ├── README.md
+        ├── assets/
+        │   ├── banner.svg
+        │   ├── ghost.svg
+        │   └── logo.svg
+        │
+        └── shaders/
+            ├── Lizard-Originals/
+            │   ├── shader1.glsl
+            │   └── shader2.glsl
+            │
+            ├── ghostty-originals/
+            │   ├── shader1.glsl
+            │   └── shader2.glsl
+            │
+            └── ContributorName/
+                ├── shader1.glsl
+                └── shader2.glsl
+```
 ---
 
 ## Installation
@@ -11,23 +63,36 @@ These shaders have been rewritten to enforce strict GLSL type safety, resolve `i
 Clone the repository:
 
 ```bash
-git clone [ghostty-shaders](https://github.com/GrandBIRDLizard/ghostty-shaders)
-cd ghostty-shaders
+git clone https://github.com/GrandBIRDLizard/GSIM.git
 ```
-Copy your favorite shaders to `~/.config/shostty/shaders` via:
+Make Ghostty's new GSIM config dir via:
 
 ```bash
-mkdir -p ~/.config/ghostty/shaders
-cp shader.glsl ~/.config/ghostty/shaders/
+mkdir -p ~/.config/ghostty/GSIM/Active
 ```
-or move all of them at once with:
 
->assuming you've cloned the repo in your home dir.
+Copy a collection:
 
 ```bash
-mkdir -p ~/.config/ghostty/shaders && mv ./*.glsl ~/.config/ghostty/shaders/
+cp ~/GSIM/shaders/Lizard-Originals/*.glsl \
+   ~/.config/ghostty/GSIM/shaders/Active/
 ```
->then dispose or place the source tree wherever you'd like.
+
+Or a single shader:
+
+```bash
+cp ~/GSIM/shaders/Lizard-Originals/crt.glsl \
+   ~/.config/ghostty/GSIM/shaders/Active/
+```
+---
+
+Where ever you put it, point Ghostty at it:
+
+```ini
+custom-shader = ~/.config/ghostty/GSIM/shaders/Active/crt.glsl
+```
+
+**Config Tooling Coming Soon**
 
 ---
 
@@ -42,15 +107,16 @@ If you see `unknown field` errors in your logs, you likely pasted GLSL code dire
 ---
 
 ### Performance & Latency:
-To maintain a steady 120 FPS on high-refresh displays:
+To maintain a steady 60/120 FPS on high-refresh displays:
 * Use `custom-shader-animation = true` to pause rendering when the window is hidden.
 * Keep the math inside `mainImage` as lean as possible—avoid complex loops
 
 ##progress 
-anything inside g-shaders is not currently optimized will add IM at end of file name to indicate changes repo is a work in progress I've been tooling with in my spare time will tag a release when finished and possibly pre-release tags when I feel I've made significant progress and I've come to a final direction for project  
+anything inside ghostty-shaders is not currently optimized will add IM at end of file name to indicate changes repo is a work in progress I've been tooling with in my spare time will tag a release when finished and possibly pre-release tags when I feel I've made significant progress and I've come to a final direction for project  
 
 ---
 # site not implemented will be available when project ships Pictures will be desplayed in README.md Gif's will be on the website
+
 ## 📖 The Interactive site:
 Don't just read the code see it in action. Visit the [Ghostty Shader site](https://my-site-link.com) 
 to preview every shader with high-res recordings and one-click installation.
