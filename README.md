@@ -112,10 +112,16 @@ To maintain a steady 60/120 FPS on high-refresh displays:
 * Use `custom-shader-animation = true` to pause rendering when the window is hidden.
 * Keep the math inside `mainImage` as lean as possible—avoid complex loops
 
-##progress 
+## Progress 
 anything inside ghostty-shaders is not currently optimized, I will continue to pull new updates in from the maintainers but I will not make any direct progress with the project. 
 repo is a work in progress, I've been tooling with in my spare time will tag a pre-release with tags soon. 
-when I feel I've made significant progress or I've come to a final direction for project.  
+when I feel I've made significant progress or I've come to a final direction for project. 
+
+## Lizard-originals  
+where my Independant work will reside, 
+and each contributer who would like to contribute and have a "slot" can do so by continual contribution and or helpful solutions/ideas/discussion.
+slot in this sense is a directory in the repo to hold a portfolio of work to show off. Distinct of one off contributions. 
+**I will make a spot or system for such one off works when I get the build and configuration stable.** 
 
 ---
 # site not implemented will be available when project ships Pictures will be desplayed in README.md Gif's will be on the website
