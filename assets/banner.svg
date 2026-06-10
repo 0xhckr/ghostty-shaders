@@ -1,0 +1,162 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+
+  <rect
+    x="0"
+    y="0"
+    width="1600"
+    height="900"
+    fill="#0d1117"
+  />
+
+  <defs>
+
+    <!-- Orange Text Glow -->
+    <filter id="orangeGlow">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Green Eye Glow -->
+    <filter id="greenGlow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+  </defs>
+
+  <style>
+    .title {
+      fill: #ff9800;
+      filter: url(#orangeGlow);
+
+      font-family:
+		"Segoe UI",
+        "Trebuchet MS",
+        Arial,
+        sans-serif;
+
+      font-size: 260px;
+      font-weight: 900;
+    }
+
+    .ghost {
+      fill: #ffffff;
+      stroke: #e5e5e5;
+      stroke-width: 2;
+    }
+
+    .eye {
+      fill: #00ff44;
+      filter: url(#greenGlow);
+    }
+    
+  </style>
+
+  <!-- Title -->
+  <text
+    x="60"
+    y="520"
+    class="title"
+  >
+    GSIM
+  </text>
+
+  <!-- Ghost 1 -->
+  <g transform="translate(830,360) scale(1.6)">
+    <path
+      class="ghost"
+      d="
+        M0 90
+        L0 45
+        C0 15 20 0 50 0
+        C80 0 100 15 100 45
+        L100 90
+        Q92 105 84 90
+        Q75 75 66 90
+        Q58 105 50 90
+        Q42 75 34 90
+        Q25 105 16 90
+        Q8 75 0 90
+        Z
+      "
+    />
+    <circle class="eye" cx="35" cy="42" r="8"/>
+    <circle class="eye" cx="65" cy="42" r="8"/>
+  </g>
+
+  <!-- Ghost 2 -->
+  <g transform="translate(1020,360) scale(1.6)">
+    <path
+      class="ghost"
+      d="
+        M0 90
+        L0 45
+        C0 15 20 0 50 0
+        C80 0 100 15 100 45
+        L100 90
+        Q92 105 84 90
+        Q75 75 66 90
+        Q58 105 50 90
+        Q42 75 34 90
+        Q25 105 16 90
+        Q8 75 0 90
+        Z
+      "
+    />
+    <circle class="eye" cx="35" cy="42" r="8"/>
+    <circle class="eye" cx="65" cy="42" r="8"/>
+  </g>
+
+  <!-- Ghost 3 -->
+  <g transform="translate(1210,360) scale(1.6)">
+    <path
+      class="ghost"
+      d="
+        M0 90
+        L0 45
+        C0 15 20 0 50 0
+        C80 0 100 15 100 45
+        L100 90
+        Q92 105 84 90
+        Q75 75 66 90
+        Q58 105 50 90
+        Q42 75 34 90
+        Q25 105 16 90
+        Q8 75 0 90
+        Z
+      "
+    />
+    <circle class="eye" cx="35" cy="42" r="8"/>
+    <circle class="eye" cx="65" cy="42" r="8"/>
+  </g>
+
+  <!-- Ghost 4 -->
+  <g transform="translate(1400,360) scale(1.6)">
+    <path
+      class="ghost"
+      d="
+        M0 90
+        L0 45
+        C0 15 20 0 50 0
+        C80 0 100 15 100 45
+        L100 90
+        Q92 105 84 90
+        Q75 75 66 90
+        Q58 105 50 90
+        Q42 75 34 90
+        Q25 105 16 90
+        Q8 75 0 90
+        Z
+      "
+    />
+    <circle class="eye" cx="35" cy="42" r="8"/>
+    <circle class="eye" cx="65" cy="42" r="8"/>
+  </g>
+
+</svg>
