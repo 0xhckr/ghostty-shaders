@@ -12,7 +12,7 @@ These shaders have been written to enforce GLSL type safety, resolve `iChannel0`
 One folder contains the works this project was [forked](https://github.com/0xhckr/ghostty-shaders) from. I just want a place to curate shaders better, and a place for new and consistent contributors with well-performing shaders to have their own "collection," if you will, represented in the form of a directory in this repo. 
 
 A unique collection curated by individuals with talent to show their stuff to the community. Nothing Ghostty ricing is off-limits. There will be more structure to follow along with as I develop this further, so there will be no confusion about what to do if you wish to make a contribution.
->For the time being keep all *questions* or *contribution ideas* to *issues* untill the project matures.  
+>For the time being keep all *questions* or *contribution ideas* will be treated as *issues* untill the project matures.  
 
 Rules off the bat: 
 No AI. 
@@ -93,7 +93,7 @@ Where ever you put it, point Ghostty at it:
 custom-shader = ~/.config/ghostty/GSIM/shaders/Active/crt.glsl
 ```
 
-**Config Tooling Coming Soon**
+## **Config Tooling Coming Soon**
 
 ---
 
@@ -113,7 +113,9 @@ To maintain a steady 60/120 FPS on high-refresh displays:
 * Keep the math inside `mainImage` as lean as possible—avoid complex loops
 
 ##progress 
-anything inside ghostty-shaders is not currently optimized will add IM at end of file name to indicate changes repo is a work in progress I've been tooling with in my spare time will tag a release when finished and possibly pre-release tags when I feel I've made significant progress and I've come to a final direction for project  
+anything inside ghostty-shaders is not currently optimized, I will continue to pull new updates in from the maintainers but I will not make any direct progress with the project. 
+repo is a work in progress, I've been tooling with in my spare time will tag a pre-release with tags soon. 
+when I feel I've made significant progress or I've come to a final direction for project.  
 
 ---
 # site not implemented will be available when project ships Pictures will be desplayed in README.md Gif's will be on the website
