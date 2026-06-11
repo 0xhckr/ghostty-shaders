@@ -1,9 +1,9 @@
 // GSIM shader collection for use with Ghostty 1.3.x+
-// Ramanujans-Pen Written by GrandBIRDLizard
-// Optimized with Space-Folding Smear Architectures 
+// Ramanujans-Pen Written by GrandBIRDLizard.
+// Optimized with Deterministic Space-Folding Smear Architectures. 
 // BSD-3-Clause-v2 (Modified - Name Attribution Required)  
 
-//Copyright (c) 2026 GrandBIRDLizard
+//Copyright (c) 2026 GrandBIRDLizard.
 //ALL rights reserved.
 
 #define DURATION 0.5
@@ -22,7 +22,7 @@
 // 1 = Block Ramp (Quantized distinct blocks)
 // 2 = Pulse Blocks (Blocks scaling to a rhythmic wave)
 // 3 = Pulse Circles (Circles scaling to a rhythmic wave)
-#define SMEAR_STYLE 2
+#define SMEAR_STYLE 1
 
 // SMEAR_REVERSE:
 // 0 = Small -> Large (Tail is thin, Head is thick)
@@ -30,16 +30,16 @@
 #define SMEAR_REVERSE 0
 
 // Modifiers:
-#define SMEAR_STEPS 10.0      // Amount of chunks for styles 1, 2, and 3
-#define SMEAR_MIN_SIZE 0.15   // Trail starting scale
-#define SMEAR_MAX_SIZE 1.2    // Trail ending scale
+#define SMEAR_STEPS 30.0      // Amount of chunks for styles 1, 2, and 3
+#define SMEAR_MIN_SIZE 0.65   // Trail starting scale
+#define SMEAR_MAX_SIZE 1.5    // Trail ending scale
 #define PULSE_COUNT 4.0       // Number of pulses active (Styles 2 & 3)
 #define PULSE_SPEED 15.0      // Speed of the pulse wave (Styles 2 & 3)
 
 // Pulse Settings (End-Animation)
 #define PULSE_DURATION 0.35
-#define PULSE_MAX_RADIUS 0.06
-#define PULSE_THICKNESS 0.008
+#define PULSE_MAX_RADIUS 0.05
+#define PULSE_THICKNESS 0.009
 
 const vec4 TRAIL_COLOR_ACCENT = vec4(0.45, 0.20, 0.75, 1.0);
 
@@ -63,7 +63,7 @@ vec2 getRectangleCenter(vec4 rect) {
     return rect.xy + vec2(rect.z * 0.5, -rect.w * 0.5);
 }
 
-// Hollow Rectangle SDF  End-Point Pulse
+// Hollow Rectangle SDF End-Point Pulse
 float getSdfRectRing(vec2 p, vec2 center, vec2 halfSize, float thickness) {
     vec2 d = abs(p - center) - halfSize;
     float outsideSdf = length(max(d, 0.0)) + min(max(d.x, d.y), 0.0);
