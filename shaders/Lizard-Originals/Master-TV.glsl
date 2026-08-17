@@ -1,7 +1,10 @@
-// Ghostty 1.3.0+ smooth-retro
+// Ghostty 1.3.x+ Master-TV
 // By GrandBIRDLizard 2026
 // Optimized for high res and hrz systems
-// Merges your preferred curve/color with the Teleport-On animation
+
+// BSD 3-Clause License (Modified - Name Attribution Required)
+// Copyright (c) [2026], GrandBIRDLizard.
+// All rights reserved.
 
 vec2 curve(vec2 uv) {
     uv = (uv - 0.5) * 2.0;
@@ -18,7 +21,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     vec2 q = fragCoord.xy / iResolution.xy;
     float t = iTime;
 
-    // THE STARTUP "TELEPORT"
+    // THE STARTUP 
     float vPinch = smoothstep(0.0, 0.3, t);
     float hPinch = smoothstep(0.2, 0.5, t);
     
@@ -26,7 +29,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     uv.y = (uv.y - 0.5) / max(vPinch, 0.001) + 0.5;
     uv.x = (uv.x - 0.5) / max(hPinch, 0.001) + 0.5;
 
-    // Apply curvature
+    // Curvature
     uv = curve(uv);
 
     // CHROMATIC ABERRATION & JITTER (Toned down for text clarity)
@@ -46,7 +49,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     col *= 2.8;
 
     // Anti-Moiré
-    // We use a fixed multiplier (2.0) to align with pixels
+    // Used a fixed multiplier (2.0) to align with pixels
     float scans = clamp(0.35 + 0.35 * sin(uv.y * iResolution.y * 1.5), 0.0, 1.0);
     col *= vec3(0.4 + 0.7 * pow(scans, 1.7));
 
