@@ -11,9 +11,9 @@
 #define HIDE_TRAILS_ON_THE_SAME_LINE 0 // Use 1 to hide, 0 to show
 
 
-// Toggle Switches (1/0 for GLSL)
+// Toggle Switches (1/0 opposite for GLSL)
 #define ENABLE_TRAIL 1
-#define ENABLE_PULSE 1
+#define ENABLE_PULSE 0
 
 // SMEAR ARCHITECTURE SETTINGS
 
@@ -22,7 +22,7 @@
 // 1 = Block Ramp (Quantized distinct blocks)
 // 2 = Pulse Blocks (Blocks scaling to a rhythmic wave)
 // 3 = Pulse Circles (Circles scaling to a rhythmic wave)
-#define SMEAR_STYLE 1
+#define SMEAR_STYLE 0
 
 // SMEAR_REVERSE:
 // 0 = Small -> Large (Tail is thin, Head is thick)
@@ -31,15 +31,20 @@
 
 // Modifiers:
 #define SMEAR_STEPS 30.0      // Amount of chunks for styles 1, 2, and 3
-#define SMEAR_MIN_SIZE 0.65   // Trail starting scale
+#define SMEAR_MIN_SIZE 0.5   // Trail starting scale
 #define SMEAR_MAX_SIZE 1.5    // Trail ending scale
 #define PULSE_COUNT 4.0       // Number of pulses active (Styles 2 & 3)
 #define PULSE_SPEED 15.0      // Speed of the pulse wave (Styles 2 & 3)
 
 // Pulse Settings (End-Animation)
 #define PULSE_DURATION 0.35
-#define PULSE_MAX_RADIUS 0.05
-#define PULSE_THICKNESS 0.009
+#define PULSE_MAX_RADIUS 0.03
+#define PULSE_THICKNESS 0.008
+
+// PULSE_STYLE:
+// 0 = Rectangular Ring (Matches active cursor profile bounds)
+// 1 = Circular Ripple (Uniform mathematical radial expansion)
+#define PULSE_STYLE 1
 
 const vec4 TRAIL_COLOR_ACCENT = vec4(0.45, 0.20, 0.75, 1.0);
 
@@ -170,7 +175,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
             #endif
         #endif
 
-        // 4. Alpha Compositing (Smooth backround into one trail color)
+        // Alpha Compositing (Smooth backround into one trail color)
         float trailMask = 1.0 - smoothstep(-0.01, 0.001, sdfTrail);
         float distanceToEnd = distance(vu, centerCC);
         float alphaModifier = clamp(distanceToEnd / safeLineLength, 0.0, 1.0);
@@ -181,26 +186,36 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     #endif
 
 
-    // Rectangle Pulse (End-Animation)
-    #if ENABLE_PULSE == 1
+    // Pulse (End-Animation)
+    #if ENABLE_PULSE == 0
         float pulseProgress = clamp((iTime - iTimeCursorChange) / PULSE_DURATION, 0.0, 1.0);
         float pulseActive = isFarEnough * isOnSeparateLine * step(pulseProgress, 0.999);
         float pulseFade = 1.0 - pulseProgress;
         float expansionFactor = easeOutSine(pulseProgress) * PULSE_MAX_RADIUS;
 
-        vec2 currentHalfBounds = vec2(currentCursor.z, currentCursor.w) * 0.5;
+        float sdfPulse;
 
-        float isBar = step(currentCursor.z / currentCursor.w, 0.25);
-        float isUnderline = step(currentCursor.w / currentCursor.z, 0.25);
-     
-        vec2 expansionDirection = vec2(1.0, 1.0);
-        expansionDirection = mix(expansionDirection, vec2(1.0, 0.2), isUnderline);
-        expansionDirection = mix(expansionDirection, vec2(0.2, 1.0), isBar);
+        #if PULSE_STYLE == 0
+            // Profile-Aware Rectangular Ring
+            vec2 currentHalfBounds = vec2(currentCursor.z, currentCursor.w) * 0.5;
 
-        vec2 animatedHalfBounds = currentHalfBounds + (vec2(expansionFactor) * expansionDirection);
-        float sdfRect = getSdfRectRing(vu, centerCC, animatedHalfBounds, PULSE_THICKNESS);
+            float isBar = step(currentCursor.z / currentCursor.w, 0.25);
+            float isUnderline = step(currentCursor.w / currentCursor.z, 0.25);
+         
+            vec2 expansionDirection = vec2(1.0, 1.0);
+            expansionDirection = mix(expansionDirection, vec2(1.0, 0.2), isUnderline);
+            expansionDirection = mix(expansionDirection, vec2(0.2, 1.0), isBar);
 
-        float pulseMask = 1.0 - smoothstep(-0.01, 0.001, sdfRect);
+            vec2 animatedHalfBounds = currentHalfBounds + (vec2(expansionFactor) * expansionDirection);
+            sdfPulse = getSdfRectRing(vu, centerCC, animatedHalfBounds, PULSE_THICKNESS);
+        #else
+            // Isotropic Radial Circular Ripple
+            float baseRadius = max(currentCursor.z, currentCursor.w) * 0.5;
+            float animatedRadius = baseRadius + expansionFactor;
+            sdfPulse = abs(length(vu - centerCC) - animatedRadius) - PULSE_THICKNESS * 0.5;
+        #endif
+
+        float pulseMask = 1.0 - smoothstep(-0.01, 0.001, sdfPulse);
         float pulseIntensity = pulseMask * pulseFade * pulseActive;
 
         finalColor = mix(finalColor, TRAIL_COLOR_ACCENT.rgb, pulseIntensity * 0.80);
@@ -240,4 +255,4 @@ OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/ 
+*/
