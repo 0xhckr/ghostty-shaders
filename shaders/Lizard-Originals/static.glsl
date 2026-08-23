@@ -1,4 +1,4 @@
-// Ghostty 1.3.0+ Static Shadery:
+// Ghostty 1.3.x Static Shadery:
 // Best as a transition or game effect, but still usefull as a terminal sequence 
 // Written by GrandBirdLizard
 
